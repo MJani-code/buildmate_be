@@ -5,7 +5,7 @@ header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
 require('../../inc/conn.php');
-require('../../functions/getmaxid/getmaxid.php');
+require('../../functions/getter/getmaxid.php');
 require('../../functions/deletebyid/deletebyid.php');
 
 
@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute();
                     $rowCount = $stmt->rowCount();
 
+                    $maxId = getMaxId($this->conn, 'events', 'id');
                     if ($responsiblesIds) {
-                        $maxId = getMaxId($this->conn, 'events', 'id');
                         if ($maxId != -1) {
                             //echo "A maximális ID: $maxId";
                         } else {
@@ -90,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         if ($insert > 0) {
                             $response['confirmAddNewEvent'] = true;
+
                         } else {
                             $error['error'] = "Nem sikerült minden felelőst hozzáadni";
                             echo json_encode($error);
@@ -98,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if ($rowCount > 0) {
                         $response['confirmAddNewEvent'] = true;
+                        $response['eventId'] = $maxId;
                         echo json_encode($response);
                     }
 

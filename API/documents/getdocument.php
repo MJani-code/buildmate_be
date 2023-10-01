@@ -4,7 +4,7 @@ header("Access-Control-Allow-Methods: *"); // Engedélyezett HTTP metódusok (pl
 header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
-require_once('../../functions/filegetter/filegetter.php');
+require_once('../../functions/getter/filegetter.php');
 require_once('../../functions/interface/filegetterinterface.php');
 require('../../inc/conn.php');
 

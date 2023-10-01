@@ -9,8 +9,8 @@ require('../../inc/conn.php');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-//$_SERVER['REQUEST_METHOD'] === 'GET'
-if (true) {
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 

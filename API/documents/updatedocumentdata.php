@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         public function updateData($id, $typeid, $statusid, $title, $eventtype, $deleted)
         {
-            if ($typeid == 2) {
+            if ($typeid == 2 && $statusid < 4 && !$deleted) {
                 $statusid = $statusid + 1;
             }
             if ($eventtype == 'delete') {

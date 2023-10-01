@@ -37,7 +37,8 @@ if (true) {
                     e.created_by as 'createdBy',
                     ec.color as 'color',
                     er.event_id as 'event_id',
-                    er.responsible_user_id,
+                    er.responsible_user_id as 'responsibleUserIds',
+                    u.stair_case_flat as 'flat',
                     CONCAT(u.last_name,' ',u.first_name) as 'name'
                     FROM events e
                     LEFT JOIN events_categories ec on ec.id = e.id_category
@@ -69,11 +70,14 @@ if (true) {
                                 'timed' => true,
                                 'createdBy' => $row['createdBy'],
                                 'color' => $row['color'],
-                                'responsibles' => array() // Itt inicializálj egy üres felelősök tömböt
+                                'flat' => $row['flat'],
+                                'responsibles' => array(), // Itt inicializálj egy üres felelősök tömböt
+                                'responsiblesIds' => array() // Itt inicializálj egy üres felelősök tömböt
                             );
                         }
                         // Hozzáadhatod a felelősöket az adott eseményhez
                         $events[$eventId]['responsibles'][] = $row['name'];
+                        $events[$eventId]['responsiblesIds'][] = $row['responsibleUserIds'];
                     }
                     // Az események hozzáadása a válaszhoz
                     $response['result'] = array_values($events);

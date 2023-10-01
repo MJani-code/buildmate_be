@@ -7,9 +7,9 @@ function deleteResponsiblesByEventId(PDO $conn, $tableName, $eventId) {
         $rowCount = $stmt->rowCount();
 
         return $rowCount;
-    } catch (PDOException $e) {
-        // Hiba kezelése itt, például hibaüzenet logolása vagy továbbítása
-        return -1; // Vagy más érték, ami a hiba jelzésére szolgál
+    } catch (Exception $e) {
+        $error = "Hiba történt a művelet során: " . $e->getMessage();
+        return json_encode($error);
     }
 }
 
@@ -22,9 +22,9 @@ function deleteEventById(PDO $conn, $tableName, $id) {
         $rowCount = $stmt->rowCount();
 
         return $rowCount;
-    } catch (PDOException $e) {
-        // Hiba kezelése itt, például hibaüzenet logolása vagy továbbítása
-        return -1; // Vagy más érték, ami a hiba jelzésére szolgál
+    } catch (Exception $e) {
+        $error = "Hiba történt a művelet során: " . $e->getMessage();
+        return json_encode($error);
     }
 }
 

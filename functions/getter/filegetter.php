@@ -23,8 +23,10 @@ class FileGetter implements FileGetterInterface
                 CONCAT(u.last_name,' ',u.first_name) as 'createdBy',
                 d.path as 'path',
                 d.url as 'url',
+                d.filename as 'filename',
                 d.id_type as 'typeId',
                 dt.description_HU as 'type',
+                dt.description_EN as 'typeEN',
                 d.id_status as 'statusId',
                 ds.description as 'status'
                 FROM documents d

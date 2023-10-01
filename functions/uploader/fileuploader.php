@@ -45,6 +45,7 @@ class FileUploader implements FileUploaderInterface
                             $error .= "A fájl már létezik";
                         } else {
                             move_uploaded_file($fileTmpName, $fileDestination);
+                            chmod($fileDestination, 0777);
 
                             $sql = "SELECT MAX(id) as max_id FROM documents";
                             $stmt = $this->conn->query($sql);

@@ -5,7 +5,7 @@ header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
 require('../../inc/conn.php');
-require('../../functions/getmaxid/getmaxid.php');
+require('../../functions/getter/getmaxid.php');
 require('../../functions/deletebyid/deletebyid.php');
 
 
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 
-    $id = $data['id'];
+    $id = $data['id'] ?? null;
 
     class DeleteEvent
     {
@@ -31,25 +31,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         public function deleteEvent($id)
         {
-            //Kitörlünk minden felelőst.
-            $deletedRowCount = deleteResponsiblesByEventId($this->conn, 'events_responsibles', $id);
-            if ($deletedRowCount >= 0) {
-                $response['confirmDeleteEvent'] = true;
-            } else {
-                $error["error"] = "Hiba történt a felelősök törlése során";
+            if($id){
+                try {
+                    //Kitörlünk minden felelősét az eseménynek.
+                    $deletedRowCount = deleteResponsiblesByEventId($this->conn, 'events_responsibles', $id);
+                    if ($deletedRowCount >= 0) {
+                        $response['confirmDeleteEvent'] = true;
+                    } else {
+                        $error["error"] = "Hiba történt a felelősök törlése során";
+                        echo json_encode($error);
+                    }
+                    //Kitöröljük az adott eseményt.
+                    $deletedRowCount = deleteEventById($this->conn, 'events', $id);
+                    if ($deletedRowCount >= 0) {
+                        $response['confirmDeleteEvent'] = true;
+                    } else {
+                        $error["error"] .= "Hiba történt az esemény törlése során";
+                        echo json_encode($error);
+                    }
+
+                } catch (Exception $e) {
+                    $error["error"] .= "Hiba történt a művelet során: " . $e->getMessage();
+                }
+                echo json_encode($response);
+
+            }else{
+                $error["error"] = "Ez az esemény még nem létezik. Nem lett elmentve.";
                 echo json_encode($error);
             }
 
-            //Kitörlünk minden eseményt.
-            $deletedRowCount = deleteEventById($this->conn, 'events', $id);
-            if ($deletedRowCount >= 0) {
-                $response['confirmDeleteEvent'] = true;
-            } else {
-                $error["error"] = "Hiba történt az esemény törlése során";
-                echo json_encode($error);
-            }
-
-            echo json_encode($response);
         }
     }
     $deleteevent = new DeleteEvent($conn);
