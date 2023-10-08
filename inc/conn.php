@@ -36,6 +36,5 @@ try {
     die("Sikertelen kapcsolódás: " . $e->getMessage());
 }
 
-// Bezárjuk a kapcsolatot
-//$conn = null;
+
 ?>

@@ -25,7 +25,7 @@ class AuthHandler {
         $data = json_decode($jsonData, true);
 
         $token = $data['token'];
-        $currentTimestamp = time();
+        $currentTimestamp = date("Y-m-d H:i:s",time());
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -44,7 +44,9 @@ class AuthHandler {
                 if($token && $currentTimestamp < $expirationTimestamp){
                     $response = array(
                         "tokenValid" => true,
-                        "pageCategory" => $pageCategory
+                        "pageCategory" => $pageCategory,
+                        "currentTimestamp" => $currentTimestamp,
+                        "expirationTimestamp" => $expirationTimestamp
                     );
                     echo json_encode($response);
                 }else{

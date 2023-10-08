@@ -19,14 +19,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode($jsonData, true);
 
     $id = $data['id'] ?? null;
-    $categoryid = $data['categoryId'];
+    $categoryid = $data['categoryId'] ?? null;
     $responsiblesIds = $data['responsiblesIds'] ?? null;
     $title = $data['name'];
     $starteventunix = $data['start'];
     $endeventunix = $data['end'];
     $startdate = date("Y-m-d H:i:s",($starteventunix)/1000 );
     $enddate = date("Y-m-d H:i:s",($endeventunix)/1000 );
-    $createdby = $data['userId'] ?? $data['createdBy'];
+    $createdby = $data['userId'] ?? $data['createdBy'] ?? NULL;
 
 
     class AddEvent
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         public function addEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds)
         {
             //Ha új eseményt adnak hozzá, akkor insertálunk
-            if (!$id) {
+            if ($id === NULL) {
                 try {
                     $stmt = $this->conn->prepare(
                         "INSERT INTO events
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
                         echo json_encode($response);
                     } else {
-                        $error = "Hiba történt az adatok frissítése közben";
+                        $error["error"] = "Hiba történt az adatok frissítése közben";
                         echo json_encode($error);
                     }
                 } catch (Exception $e) {

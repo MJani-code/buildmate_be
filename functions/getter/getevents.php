@@ -1,6 +1,6 @@
 <?php
 
-function fetchEventsFromDatabase($conn, $now) {
+function fetchEventsFromDatabase($conn, $dateWithRemainDay, $now) {
     try {
         $stmt = $conn->prepare(
             "SELECT
@@ -16,12 +16,14 @@ function fetchEventsFromDatabase($conn, $now) {
             u.stair_case_flat as 'flat',
             u.email as 'email',
             u.first_name as 'firstName',
-            er.responsible_user_id as 'responsiblesIds'
+            er.responsible_user_id as 'responsiblesIds',
+            c.name as 'condominiumName'
             FROM events e
             LEFT JOIN events_categories ec on ec.id = e.id_category
             LEFT JOIN events_responsibles er on er.event_id = e.id
             LEFT JOIN users_dev u on u.id = er.responsible_user_id
-            where e.deleted = 0 AND e.start_event < '$now'
+            LEFT JOIN condominiums c on c.id = u.id_condominiums
+            where e.deleted = 0 AND e.start_event < '$dateWithRemainDay' AND e.start_event > '$now'
         ");
 
         $stmt->execute();
@@ -48,7 +50,8 @@ function fetchEventsFromDatabase($conn, $now) {
                         'flat' => $row['flat'],
                         'responsibles' => array(),
                         'responsiblesEmails' => array(),
-                        'responsiblesIds' => array()
+                        'responsiblesIds' => array(),
+                        'condominiumName' => $row['condominiumName']
                     );
                 }
 

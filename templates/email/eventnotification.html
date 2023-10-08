@@ -10,7 +10,7 @@
     <link href='https://fonts.googleapis.com/css?family=Quicksand:300,400,700' rel='stylesheet'>
     <!--<![endif]-->
 
-    <title>DEV - új bejegyzés</title>
+    <title>Esemény</title>
 
     <style type='text/css'>
         body {
@@ -166,24 +166,39 @@
                         <td align='left'>
                             <table border='0' width='590' align='center' cellpadding='0' cellspacing='0'
                                 class='container590'>
-                                <tr>
-                                    <td align='left'
-                                        style='color: #888888; font-size: 16px; font-family: Work Sans, Calibri, sans-serif; line-height: 24px;'>
-                                        <!-- section text ======-->
+                                <tbody>
+                                    <tr>
+                                        <td align='left'
+                                            style='color: #888888; font-size: 16px; font-family: Work Sans, Calibri, sans-serif; line-height: 24px;'>
+                                            <!-- section text ======-->
 
-                                        <p style='line-height: 24px; margin-bottom:15px;'>
-                                            Kedves %firstname%,
-                                        </p>
-                                        <p style='line-height: 24px;margin-bottom:15px;'>
-                                            A rendszer szerint %DATE% napon Te vagy a soros a %title% feladatban.
-                                            Ne felejts el gondoskodni róla.
-                                        </p>
-                                        <p style='line-height: 24px'>
-                                            Üdvözlettel,</br>
-                                            %condominiums name%
-                                        </p>
-                                    </td>
-                                </tr>
+                                            <p style='line-height: 24px; margin-bottom:15px;'>
+                                                Kedves %firstname%,
+                                            </p>
+                                            <p style='line-height: 24px;margin-bottom:15px;'>
+                                                <!-- A rendszer szerint %DATE% napon Te vagy a soros a %title% feladatban. -->
+                                                A rendszer szerint az alábbi határidős feladatid vannak.
+                                                Ne felejts el gondoskodni róla.
+                                            </p>
+                                            <table class="table" style="width: 100%; border: #888888 1px solid; border-collapse: collapse;">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" style="border: 1px solid #888;">#</th>
+                                                        <th scope="col" style="border: 1px solid #888;">Megnevezés</th>
+                                                        <th scope="col" style="border: 1px solid #888;">Időpont</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody style="text-align: center;">
+                                                    %table%
+                                                </tbody>
+                                            </table>
+                                            <p style='line-height: 24px; margin-top: 50px;'>
+                                                Üdvözlettel,</br>
+                                                %condominiums name%
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </td>
                     </tr>
@@ -199,13 +214,14 @@
 
     <!-- main section -->
     <table border='0' width='100%' cellpadding='0' cellspacing='0' bgcolor='2a2e36'>
-
-        <tr>
-            <td align='center'
-                style='background-image: url(https://www.tarsashaz-fustike.hu/admin/dashboard/uploads/fustike_udvar.jpeg); background-size: cover; background-repeat: no-repeat; background-position:0 75% !important; height: 300px;'
-                background='https://www.tarsashaz-fustike.hu/admin/dashboard/uploads/fustike_udvar.jpeg; '>
-            </td>
-        </tr>
+        <tbody>
+            <tr>
+                <td align='center'
+                    style='background-image: url(https://www.tarsashaz-fustike.hu/admin/dashboard/uploads/fustike_udvar.jpeg); background-size: cover; background-repeat: no-repeat; background-position:0 75% !important; height: 300px;'
+                    background='https://www.tarsashaz-fustike.hu/admin/dashboard/uploads/fustike_udvar.jpeg; '>
+                </td>
+            </tr>
+        </tbody>
     </table>
     </td>
     </tr>
@@ -216,19 +232,21 @@
 
     <!-- footer ====== -->
     <table border='0' width='100%' cellpadding='0' cellspacing='0' bgcolor='f4f4f4'>
-        <tr style="display: flex; justify-content: center;">
-            <td align='left'
-                style='color: #aaaaaa; font-size: 14px; font-family: Work Sans, Calibri, sans-serif; line-height: 24px; padding: 20px; display: flex; justify-content: center;'>
-                <div style='line-height: 24px;'>
-                    <span style='color: #333333;'>%condominiums name%</span>
-                </div>
-            </td>
-            <td align='right' style="padding: 20px; display: inline-flex; justify-content: center;">
-                <a href='https://www.facebook.com/mdbootstrap'
-                    style='display: block; border-style: none !important; border: 0 !important;'><img width='24'
-                        border='0' style='display: block;' src='http://i.imgur.com/RBRORq1.png' alt=''></a>
-            </td>
-        </tr>
+        <tbody style="text-align: center;">
+            <tr style='display: flex; justify-content: center;'>
+                <td align='center'
+                    style='color: #aaaaaa; font-size: 14px; font-family: Work Sans, Calibri, sans-serif; line-height: 24px; padding: 20px; display: flex; justify-content: center;'>
+                    <div style='line-height: 24px;'>
+                        <span style='color: #333333;'>%condominiums name%</span>
+                    </div>
+                </td>
+                <td align='center' style='padding: 20px; display: inline-flex; justify-content: center;'>
+                    <a href='https://www.facebook.com/mdbootstrap'
+                        style='display: block; border-style: none !important; border: 0 !important;'><img width='24'
+                            border='0' style='display: block;' src='http://i.imgur.com/RBRORq1.png' alt=''></a>
+                </td>
+            </tr>
+        </tbody>
     </table>
     <!-- end footer ====== -->
 
