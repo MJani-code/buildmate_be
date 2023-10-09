@@ -25,7 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         public function getTodoData() {
                 try {
                     $stmt = $this->conn->prepare(
-                        "SELECT * FROM todos
+                        "SELECT
+                        id as 'id',
+                        title as 'title',
+                        status as 'status',
+                        created_at as 'createdAt',
+                        created_by as 'createdBy',
+                        updated_at as 'updatedAt'
+                        FROM todos
                     ");
                     $stmt->execute();
                     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -34,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         $response = $result;
                         echo json_encode($response);
                     }else{
-                        $error["error"] = "Hiba történt az adatok lekérdezése közben";
+                        $error["error"] = "Nem sikerült egy adatot sem betöltenünk!";
                         echo json_encode($error);
                     }
                 }catch (Exception $e) {
