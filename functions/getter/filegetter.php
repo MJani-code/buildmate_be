@@ -1,4 +1,5 @@
 <?php
+
 require_once('../../functions/interface/filegetterinterface.php');
 require('../../inc/conn.php');
 // FileUploader.php
@@ -11,9 +12,28 @@ class FileGetter implements FileGetterInterface
         $this->conn = $conn;
     }
 
-    public function getFile($id)
+    public function getFile($id, $token, $user_data)
     {
+        try {
+            $stmt = $this->conn->prepare(
+                "SELECT
+                u.id_condominiums as 'condominiumId'
+                from users u
+                LEFT JOIN user_login ul on ul.user_id = u.id
+                where ul.token = '$token'
+                "
+            );
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+            if ($result) {
+                $condominiumId = $result[0];
+            }
+
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            echo json_encode($error);
+        }
         try {
             $stmt = $this->conn->prepare(
                 "SELECT
@@ -35,9 +55,11 @@ class FileGetter implements FileGetterInterface
                 LEFT JOIN documents_statuses ds on ds.id = d.id_status
                 WHERE (:id IS NULL OR d.id = :id)
                 AND d.deleted = 0
+                AND d.condominium = :condominiumId
                 order by d.id desc
             ");
             $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+            $stmt->bindParam(":condominiumId", $condominiumId, PDO::PARAM_INT);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -58,7 +80,6 @@ class FileGetter implements FileGetterInterface
                 $response['confirm'] = true;
                 $response['documentStatuses'] = $result2;
                 echo json_encode($response);
-                //print_r(($result));
             }else{
                 $errorInfo1 = $stmt->errorInfo();
                 $errorInfo2 = $stmt2->errorInfo();

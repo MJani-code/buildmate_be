@@ -1,6 +1,9 @@
 <?php
 $test = 1;
 
+//$domain = 'https://'.$_SERVER['HTTP_HOST'];
+$domainTest = 'https://localhost:5000';
+
 if ($test) {
      // DB- DEV
 
@@ -9,26 +12,18 @@ if ($test) {
      define('pwd', "Ma19900114");
      define('db', "build_mate");
 
-
-    //  //ToDo DOC- ROOT - DEV
-    define('DOC_URL', 'http://localhost:5000/THFustike3/build_mate_be');
+     //ToDo DOC- ROOT - DEV
+    define('DOC_URL', $domainTest.'/THFustike3/build_mate_be');
     define('DOC_PATH', '/Applications/XAMPP/xamppfiles/htdocs/THFustike3/build_mate_be');
-    //  define('DOC_ROOT3', 'http://localhost:4000');
 
-    //  //ToDo CSS- ROOT  - DEV
-    //  define('CSS_ROOT', 'http://localhost/THFustike/public/css');
 } else {
      define('host','mysql.nethely.hu');
-     define('user','thfustike2');
+     define('user','build_mate');
      define('pwd','Ma19900114');
-     define('db','thfustike2');
+     define('db','build_mate');
 
+     //ToDo DOC- ROOT - LIVE
+     define('DOC_URL', $domain.'/build_mate_be');
+     define('DOC_PATH', $domain.'/build_mate_be');
 
-     //ToDo DOC- ROOT
-     define('DOC_ROOT','https://martolin.hu/THFustike2');
-     define('DOC_ROOT2','https://martolin.hu/THFustike2');
-     define('DOC_ROOT3','http://martolin.hu/THFustike2');
-
-     //ToDo CSS- ROOT
-     define('CSS_ROOT','https://martolin.hu/THFustike2/admin/css');
 }

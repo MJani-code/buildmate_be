@@ -5,7 +5,7 @@ header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
 require('../../inc/conn.php');
-//require('scripts.php');
+
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -17,23 +17,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $newtodotitle = $data['newTodo'];
     $userid = $data['userId'];
+    $token = $data['token'];
 
-    class Todo {
+
+    class Todo
+    {
         private $conn; // Adatbázis kapcsolat
 
-        public function __construct($conn) {
+        public function __construct($conn)
+        {
             $this->conn = $conn;
         }
 
-        public function addTodo($newtodotitle, $userid) {
+        public function addTodo($newtodotitle, $userid, $token)
+        {
+            //GET condominium data
+            try {
+                $stmt = $this->conn->prepare(
+                    "SELECT
+                        u.id_condominiums as 'condominiumId'
+                        from users u
+                        LEFT JOIN user_login ul on ul.user_id = u.id
+                        where ul.token = '$token'
+                    "
+                );
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+                if ($result) {
+                    $condominiumId = $result[0]['condominiumId'];
+                }
+
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+                echo json_encode($error);
+            }
             try {
                 $stmt = $this->conn->prepare(
                     "INSERT INTO todos
-                    (title, created_by)
-                    VALUES (:title, :created_by);
-                ");
+                    (title, id_condominiums, created_by)
+                    VALUES (:title, :id_condominiums, :created_by);
+                "
+                );
                 $stmt->bindParam(":title", $newtodotitle);
+                $stmt->bindParam(":id_condominiums", $condominiumId);
                 $stmt->bindParam(":created_by", $userid);
                 $stmt->execute();
                 $rowCount = $stmt->rowCount();
@@ -43,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 echo json_encode($response);
 
-            }catch (Exception $e) {
+            } catch (Exception $e) {
                 $error["error"] = "Hiba történt a művelet során: " . $e->getMessage();
                 echo json_encode($error);
             }
@@ -52,7 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $addtodo = new Todo($conn);
-    $addtodo->addTodo($newtodotitle, $userid);
+    $token = $_POST['token'];
+    $addtodo->addTodo($newtodotitle, $userid, $token);
 }
 
 

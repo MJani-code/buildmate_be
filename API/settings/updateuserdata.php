@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt2->execute();
                         $rowCount2 = $stmt2->rowCount();
 
-                        if ($rowCount1 > 0 && $rowCount2 > 0) {
+                        if ($rowCount1 > 0 || $rowCount2 > 0) {
                             $response = array(
                                 "confirmUpdateUserData" => true
                             );

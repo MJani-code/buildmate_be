@@ -21,7 +21,7 @@ function fetchEventsFromDatabase($conn, $dateWithRemainDay, $now) {
             FROM events e
             LEFT JOIN events_categories ec on ec.id = e.id_category
             LEFT JOIN events_responsibles er on er.event_id = e.id
-            LEFT JOIN users_dev u on u.id = er.responsible_user_id
+            LEFT JOIN users u on u.id = er.responsible_user_id
             LEFT JOIN condominiums c on c.id = u.id_condominiums
             where e.deleted = 0 AND e.start_event < '$dateWithRemainDay' AND e.start_event > '$now'
         ");

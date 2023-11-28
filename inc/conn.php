@@ -1,9 +1,5 @@
 <?php
 require_once('config.php');
-// $servername = "mysql.nethely.hu";
-// $username = "build_mate";
-// $password = "Ma19900114";
-// $dbname = "build_mate";
 
 try {
     // Kapcsolódás az adatbázishoz PDO-val
@@ -24,10 +20,8 @@ try {
 
 
     if ($result) {
-        // Kiírjuk a lekérdezés eredményét
-        // while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        //     echo $row["id"];
-        // }
+        //Kiírjuk a lekérdezés eredményét
+        //print_r($result);
     } else {
         echo "Nincs eredmény.";
     }

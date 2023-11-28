@@ -24,9 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $data['name'];
     $starteventunix = $data['start'];
     $endeventunix = $data['end'];
-    $startdate = date("Y-m-d H:i:s",($starteventunix)/1000 );
-    $enddate = date("Y-m-d H:i:s",($endeventunix)/1000 );
+    $startdate = date("Y-m-d H:i:s", ($starteventunix) / 1000);
+    $enddate = date("Y-m-d H:i:s", ($endeventunix) / 1000);
     $createdby = $data['userId'] ?? $data['createdBy'] ?? NULL;
+    $token = $data['token'];
 
 
     class AddEvent
@@ -38,18 +39,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->conn = $conn;
         }
 
-        public function addEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds)
+        public function addEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds, $token)
         {
+            //Azonosítjuk a user-t. Lekérjük a condominium ID-t
+            try {
+                $stmt = $this->conn->prepare(
+                    "SELECT
+                        u.id_condominiums as 'condominiumId'
+                        from users u
+                        LEFT JOIN user_login ul on ul.user_id = u.id
+                        where ul.token = '$token'
+                    "
+                );
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($result) {
+                    $condominiumId = $result[0]['condominiumId'];
+                }
+
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+                echo json_encode($error);
+            }
+
             //Ha új eseményt adnak hozzá, akkor insertálunk
             if ($id === NULL) {
                 try {
                     $stmt = $this->conn->prepare(
                         "INSERT INTO events
-                        (id_category, title, start_event, end_event ,start_event_unix, end_event_unix, created_at, created_by)
-                        VALUES (:id_category, :title, :start_event, :end_event, :start_event_unix, :end_event_unix, NOW(), :created_by);
+                        (id_category, id_condominiums, title, start_event, end_event ,start_event_unix, end_event_unix, created_at, created_by)
+                        VALUES (:id_category, :id_condominiums, :title, :start_event, :end_event, :start_event_unix, :end_event_unix, NOW(), :created_by);
                     "
                     );
                     $stmt->bindParam(":id_category", $categoryid);
+                    $stmt->bindParam(":id_condominiums", $condominiumId);
                     $stmt->bindParam(":title", $title);
                     $stmt->bindParam(":start_event", $startdate);
                     $stmt->bindParam(":end_event", $enddate);
@@ -194,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     $addevent = new AddEvent($conn);
-    $addevent->AddEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds);
+    $addevent->AddEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds, $token);
 }
 
 ?>

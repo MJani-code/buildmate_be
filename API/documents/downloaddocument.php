@@ -12,13 +12,13 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 
-if (true) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 
     $type = $_GET['type'];
     $filename = $_GET['filename'];
-    $path = '/Applications/XAMPP/xamppfiles/htdocs/THFustike3/build_mate_be/uploads/'.$type.'/'.$filename;
+    $path = '/var/www/customers/vh-45176/web/home/BuildMate/build_mate_be/uploads/'.$type.'/'.$filename;
 
     class DownloadDocument
     {

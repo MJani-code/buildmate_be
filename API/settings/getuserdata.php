@@ -15,8 +15,8 @@ if (true) {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 
-    // $userid = $data['userId'];
-    $userid = 4;
+    $userid = $data['userId'];
+
 
 class GetUserData {
     private $conn; // Adatbázis kapcsolat

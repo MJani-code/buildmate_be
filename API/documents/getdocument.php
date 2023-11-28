@@ -9,9 +9,9 @@ require_once('../../functions/interface/filegetterinterface.php');
 require('../../inc/conn.php');
 
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 
 
 // ParentClass.php
@@ -24,18 +24,19 @@ class GetDocument
         $this->filegetter = new FileGetter($conn);
 
     }
-
-    public function handleGet($id)
+    public function handleGet($id, $token, $user_data)
     {
-        $result = $this->filegetter->getFile($id);
+        $result = $this->filegetter->getFile($id, $token, $user_data);
 
     }
 }
 
+
 // Használat
 $parent = new GetDocument($conn);
-if (true) {
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user_data = $_SESSION["user_data"];
+    $token = $_POST['token'];
     $id = $_GET['id'] ?? null;
-    $parent->handleGet($id);
+    $parent->handleGet($id, $token, $user_data);
 }

@@ -22,8 +22,30 @@ if (true) {
             $this->conn = $conn;
         }
 
-        public function GetData()
+        public function GetData($token)
         {
+            //GET condominium data
+            try {
+                $stmt = $this->conn->prepare(
+                    "SELECT
+                    u.id_condominiums as 'condominiumId'
+                    from users u
+                    LEFT JOIN user_login ul on ul.user_id = u.id
+                    where ul.token = '$token'
+                    "
+                );
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+                if ($result) {
+                    $condominiumId = $result[0]['condominiumId'];
+                }
+
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+                echo json_encode($error);
+            }
             //GET events
             try {
                 $stmt = $this->conn->prepare(
@@ -45,12 +67,12 @@ if (true) {
                     LEFT JOIN events_responsibles er on er.event_id = e.id
                     LEFT JOIN users u on u.id = er.responsible_user_id
                     where e.deleted = 0
+                    AND e.id_condominiums = '$condominiumId'
                 "
                 );
 
                 $stmt->execute();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
                 $response['result'] = array();
 
                 if ($result) {
@@ -136,7 +158,8 @@ if (true) {
         }
     }
     $getevents = new GetEvents($conn);
-    $getevents->GetData();
+    $token = $_POST['token'];
+    $getevents->GetData($token);
 }
 
 

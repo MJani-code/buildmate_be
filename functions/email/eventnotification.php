@@ -93,7 +93,6 @@ if ($responsibles) {
         }
 
         $result = emailSender('noreply@tarsashaz-fustike.hu', $event['condominiumName'], 'noreply@tarsashaz-fustike.hu', 'Fustike3537', $email, 'Közelgő esemény', $emailTemplate);
-        print_r($result);
 
     }
 
@@ -101,7 +100,7 @@ if ($responsibles) {
     echo "nincs kinek email küldeni";
 }
 
-
+print_r($responsibles);
 
 
 ?>

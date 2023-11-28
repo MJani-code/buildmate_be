@@ -33,7 +33,9 @@ class FileUploader implements FileUploaderInterface
 
             $allowed = array('jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx');
             // $fileDestination = '../../uploads/'.$type.'/'.$fileName;
-            $fileDestination = $this->DOC_PATH . '/uploads/' . $type . '/' . $fileName;
+            // $fileDestination = $this->DOC_PATH . '/uploads/' . $type . '/' . $fileName;
+
+            $fileDestination = '/var/www/customers/vh-45176/web/home/BuildMate/build_mate_be/uploads/'. $type . '/' . $fileName;
             $fileUrl = $this->DOC_URL . '/uploads/' . $type . '/' . $fileName;
             $error = "";
             $response = "";

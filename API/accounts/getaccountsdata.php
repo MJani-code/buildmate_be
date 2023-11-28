@@ -10,9 +10,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
+
+    $token = $data["token"];
 
     class GetAccountsData {
         private $conn; // Adatbázis kapcsolat
@@ -21,7 +23,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->conn = $conn;
         }
 
-        public function getData() {
+        public function getData($token) {
+            //GET condominium data
+            try {
+                $stmt = $this->conn->prepare(
+                    "SELECT
+                    u.id_condominiums as 'condominiumId'
+                    from users u
+                    LEFT JOIN user_login ul on ul.user_id = u.id
+                    where ul.token = '$token'
+                    "
+                );
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($result) {
+                    $condominiumId = $result[0]['condominiumId'];
+                }
+
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+                echo json_encode($error);
+            }
                 try {
                     $stmt = $this->conn->prepare(
                         "SELECT
@@ -36,7 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         a.professional_field as 'professionalField'
                         FROM accounts a
                         where a.deleted = 0
-                        order by a.id desc
+                        AND a.condominium = '$condominiumId'
+                        order by a.professional_field desc
                     ");
                     $stmt->execute();
                     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -59,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     }
     $getaccounts = new GetAccountsData($conn);
-    $getaccounts->getData();
+    $getaccounts->getData($token);
 }
 
 
