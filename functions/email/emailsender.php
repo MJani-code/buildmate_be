@@ -43,7 +43,7 @@ function emailSender($fromEmail, $fromName, $username, $password, $email, $subje
 
         $mail->ClearAllRecipients();
         $mail->AddAddress($email);
-        //$mail->AddBCC('martonjanos1990@gmail.com');
+        $mail->AddBCC('martonjanos1990@gmail.com');
 
         $mail->Body = $emailTemplate;
         $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
