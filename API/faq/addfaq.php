@@ -32,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         {
 
             $maxId = getMaxId($this->conn, 'faqs', 'id');
-
             //GET condominium data
             try {
                 $stmt = $this->conn->prepare(

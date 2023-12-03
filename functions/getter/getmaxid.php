@@ -1,7 +1,7 @@
 <?php
 function getMaxId(PDO $conn, $tableName, $idColumn) {
     try {
-        $stmt = $conn->prepare("SELECT MAX($idColumn) as max_id FROM $tableName");
+        $stmt = $conn->prepare("SELECT COALESCE(MAX($idColumn), 0) as max_id FROM $tableName");
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
