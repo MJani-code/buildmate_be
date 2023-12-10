@@ -5,6 +5,7 @@ header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
 require('../inc/conn.php');
+require('../inc/secretkey.php');
 require('../vendor/autoload.php');
 
 
@@ -17,12 +18,13 @@ use \Firebase\JWT\JWT;
 
 class LoginHandler {
     private $secretKey;
+    private $secretkey;
     private $conn; // Adatbázis kapcsolat
 
-    public function __construct($conn) {
+    public function __construct($conn, $secretkey) {
         //$length = 32; // 32 bájtos kulcs (256 bites)
         //$this->secretKey = bin2hex(random_bytes($length));
-        $this->secretKey = '0815bd5951b692cfd181cb677d75d034f2be8edf9bf70729737106a1f3c9335c';
+        $this->secretKey = $secretkey;
         $this->conn = $conn;
     }
 
@@ -122,6 +124,6 @@ class LoginHandler {
         }
     }
 }
-$loginHandler = new LoginHandler($conn);
+$loginHandler = new LoginHandler($conn, $secretkey);
 $loginHandler->handleLogin();
 ?>

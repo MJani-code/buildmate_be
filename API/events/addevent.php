@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $startdate = date("Y-m-d H:i:s", ($starteventunix) / 1000);
     $enddate = date("Y-m-d H:i:s", ($endeventunix) / 1000);
     $createdby = $data['userId'] ?? $data['createdBy'] ?? NULL;
+    $comment = $data['comment'] ?? NULL;
     $token = $data['token'];
 
 
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->conn = $conn;
         }
 
-        public function addEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds, $token)
+        public function addEvent($id, $categoryid, $title, $comment, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds, $token)
         {
             //Azonosítjuk a user-t. Lekérjük a condominium ID-t
             try {
@@ -139,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "UPDATE events SET
                                 id_category = :id_category,
                                 title = :title,
+                                comment = :comment,
                                 start_event = :start_event,
                                 end_event = :end_event,
                                 start_event_unix = :start_event_unix,
@@ -151,6 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->bindParam(":id", $id);
                     $stmt->bindParam(":id_category", $categoryid);
                     $stmt->bindParam(":title", $title);
+                    $stmt->bindParam(":comment", $comment);
                     $stmt->bindParam(":start_event", $startdate);
                     $stmt->bindParam(":end_event", $enddate);
                     $stmt->bindParam(":start_event_unix", $starteventunix);
@@ -218,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     $addevent = new AddEvent($conn);
-    $addevent->AddEvent($id, $categoryid, $title, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds, $token);
+    $addevent->AddEvent($id, $categoryid, $title, $comment, $startdate, $enddate, $starteventunix, $endeventunix, $createdby, $responsiblesIds, $token);
 }
 
 ?>

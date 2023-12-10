@@ -54,6 +54,9 @@ if (true) {
                     e.id_category as 'categoryId',
                     ec.description as 'category',
                     e.title as 'title',
+                    e.comment as 'comment',
+                    e.start_event as 'start_event',
+                    e.end_event as 'end_event',
                     e.start_event_unix as 'start',
                     e.end_event_unix as 'end',
                     e.created_by as 'createdBy',
@@ -87,12 +90,16 @@ if (true) {
                                 'categoryId' => $row['categoryId'],
                                 'category' => $row['category'],
                                 'name' => $row['title'],
-                                'start' => (int)$row['start'],
-                                'end' => (int)$row['end'],
+                                'start_event' => date('Y-m-d', $row['start'] / 1000),
+                                'end_event' => date('Y-m-d', $row['end'] / 1000),
+                                'start' => (int) $row['start'],
+                                'end' => (int) $row['end'],
                                 'timed' => true,
                                 'createdBy' => $row['createdBy'],
                                 'color' => $row['color'],
                                 'flat' => $row['flat'],
+                                'comment' => $row['comment'],
+                                'commentIcon' => false,
                                 'responsibles' => array(), // Itt inicializálj egy üres felelősök tömböt
                                 'responsiblesIds' => array() // Itt inicializálj egy üres felelősök tömböt
                             );
@@ -108,7 +115,64 @@ if (true) {
             } catch (Exception $e) {
                 $error = "Hiba történt a művelet során: " . $e->getMessage();
                 echo json_encode($error);
+
             }
+
+            //Az események csoportosítása hónap alapján a táblázatos megjelenítéshez
+            $response['responseToTableView'] = array();
+            if ($result) {
+                $formattedData = array();
+
+                foreach ($response['result'] as $row) {
+                    $monthKey = date('Y-m', $row['start'] / 1000);
+                    $category = $row['category'];
+
+                    if (!isset($formattedData[$monthKey][$category])) {
+                        $formattedData[$monthKey][$category] = array(
+                            'dates' => "",
+                            'flat' => "",
+                            'events' => array()
+                        );
+                    }
+
+                    $formattedData[$monthKey][$category]['dates'] .= date('d', $row['start'] / 1000) . ", ";
+                    $formattedData[$monthKey][$category]['flat'] .= $row['flat'] . ", ";
+                    $formattedData[$monthKey]['month'] = $monthKey;
+                    $formattedData[$monthKey][$category]['events'][] = $row;
+                }
+
+                // Az események hozzáadása a válaszhoz
+                $response['responseToTableView'] = array_values($formattedData);
+                //echo json_encode($response['responseToTableView']);
+            }
+
+
+
+            // if ($result) {
+            //     $formattedData = array();
+
+            //     foreach ($response['result'] as $row) {
+            //         $monthKey = date('Y-m', $row['start'] / 1000);
+            //         $category = $row['category'];
+
+            //         if (!isset($formattedData[$monthKey][$category])) {
+            //             $formattedData[$monthKey][$category] = array(
+            //                 'dates' => "",
+            //                 'flat' => "",
+            //                 'eventId' => array(),
+            //             );
+            //         }
+
+            //         $formattedData[$monthKey][$category]['dates'] .= date('d', $row['start']/1000).", ";
+            //         $formattedData[$monthKey][$category]['flat'] .= $row['flat'].", ";
+            //         $formattedData[$monthKey]['month'] = $monthKey;
+            //         $formattedData[$monthKey][$category]['eventId'][] = $row['id'];
+            //     }
+
+            //     // Az események hozzáadása a válaszhoz
+            //     $response['responseToTableView'] = array_values($formattedData);
+            //     //echo json_encode($response['responseToTableView']);
+            // }
 
             //GET users
             try {
@@ -118,6 +182,7 @@ if (true) {
                     CONCAT(u.last_name,' ',u.first_name) as 'name'
                     FROM users u
                     where u.deleted = 0
+                    AND u.id_condominiums = '$condominiumId'
                 "
                 );
 
@@ -140,6 +205,7 @@ if (true) {
                     ec.description as 'name',
                     ec.color as 'color'
                     FROM events_categories ec
+                    where ec.id_condominiums = '$condominiumId'
                 "
                 );
 
@@ -149,7 +215,6 @@ if (true) {
                 if ($result3) {
                     $response['categories'] = $result3;
                     echo json_encode($response);
-                    //print_r($response);
                 }
             } catch (Exception $e) {
                 $error = "Hiba történt a művelet során: " . $e->getMessage();
@@ -158,7 +223,9 @@ if (true) {
         }
     }
     $getevents = new GetEvents($conn);
-    $token = $_POST['token'];
+    //$token = $_POST['token'];
+    $token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1hcnRvbmphbm9zMTk5MEBnbWFpbC5jb20iLCJleHBpcmF0aW9uVGltZSI6MTcwMjE2MzEwMX0.aalRMaFpy0I8ymAqlxNFwknZ6XAmYHsO93Z2lV4EpAw"
+    ;
     $getevents->GetData($token);
 }
 
