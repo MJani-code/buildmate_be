@@ -43,7 +43,7 @@ class LoginHandler {
                 $stmt = $this->conn->prepare(
                     "SELECT
                     u.id, u.first_name, u.last_name, u.email, u.password, u.id_condominiums,
-                    ur.page_category, ur.description
+                    ur.page_category, ur.id as 'userRoleId', ur.description
                     FROM users u
                     LEFT JOIN user_roles ur ON ur.id = u.id_user_roles
                     WHERE email = :email AND u.deleted = 0
@@ -81,7 +81,9 @@ class LoginHandler {
                         "lastName" => $lastName,
                         "loginStatus" => "success",
                         "loginMessage" => "Sikeres bejelentkezés!",
-                        "userRole" => $result['page_category'],
+                        "userRole" => $result['description'],
+                        "userRoleId" => $result['userRoleId'],
+                        "pageCategory" => $result['page_category'],
                         "token" => $jwt,
                         "userId" => $result['id'],
                         "condominium_id" => $condominium_id,

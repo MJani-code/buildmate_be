@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute();
                 $rowCount = $stmt->rowCount();
 
-                if ($rowCount > 0) {
+                if ($rowCount >= 0) {
                     $response = array(
                         "confirmUpdateDocumentData" => true,
                         "typeId" => $typeid,
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
                     echo json_encode($response);
                 } else {
-                    $error = "Hiba történt az adatok frissítése közben";
+                    $error = "Nem történt frissítés";
                     echo json_encode($error);
                 }
             } catch (Exception $e) {
