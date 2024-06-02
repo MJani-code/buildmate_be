@@ -68,25 +68,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $alreadyVotedIds[] = $row['questionId'];
                 }
 
-                $stmt2 = $this->conn->prepare(
-                    "SELECT
-                        pq.question_id as 'questionId',
-                        pq.question as 'question',
-                        pq.multiple_choice as 'multiple',
-                        po.option_id as 'optionId',
-                        po.option_text as 'option',
-                        pq.active as 'active',
-                        pq.deadline as 'deadline'
-                        FROM polls_questions pq
-                        LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
-                        LEFT JOIN polls_options po on po.poll_id = pq.question_id
-                        where pq.active = 1
-                        AND pq.id_condominiums = '$condominiumId'
-                        AND pq.question_id NOT IN (" . implode(',', $alreadyVotedIds) . ")
-                        AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
-                        GROUP BY po.option_id
-                        order by pq.question_id desc
-                    ");
+                if (!empty($alreadyVotedIds)) {
+                    $stmt2 = $this->conn->prepare(
+                        "SELECT
+                            pq.question_id as 'questionId',
+                            pq.question as 'question',
+                            pq.multiple_choice as 'multiple',
+                            po.option_id as 'optionId',
+                            po.option_text as 'option',
+                            pq.active as 'active',
+                            pq.deadline as 'deadline'
+                            FROM polls_questions pq
+                            LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
+                            LEFT JOIN polls_options po on po.poll_id = pq.question_id
+                            where pq.active = 1
+                            AND pq.id_condominiums = '$condominiumId'
+                            AND pq.question_id NOT IN (" . implode(',', $alreadyVotedIds) . ")
+                            AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
+                            GROUP BY po.option_id
+                            order by pq.question_id desc
+                        ");
+                } else {
+                    $stmt2 = $this->conn->prepare(
+                        "SELECT
+                            pq.question_id as 'questionId',
+                            pq.question as 'question',
+                            pq.multiple_choice as 'multiple',
+                            po.option_id as 'optionId',
+                            po.option_text as 'option',
+                            pq.active as 'active',
+                            pq.deadline as 'deadline'
+                            FROM polls_questions pq
+                            LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
+                            LEFT JOIN polls_options po on po.poll_id = pq.question_id
+                            where pq.active = 1
+                            AND pq.id_condominiums = '$condominiumId'
+                            AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
+                            GROUP BY po.option_id
+                            order by pq.question_id desc
+                        ");
+                }
+
                 $stmt2->execute();
                 $result2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
                 $response['result'] = array();

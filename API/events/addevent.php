@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $enddate = date("Y-m-d H:i:s", ($endeventunix) / 1000);
     $createdby = $data['userId'] ?? $data['createdBy'] ?? NULL;
     $comment = $data['comment'] ?? NULL;
-    $token = $data['token'];
+    $token = $data['token'] ?? NULL;
 
 
     class AddEvent
@@ -57,11 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($result) {
                     $condominiumId = $result[0]['condominiumId'];
+                } else{
+                    $error['error'] = "User nem azonosítható";
+                    echo json_encode($error);
+                    exit();
                 }
 
             } catch (Exception $e) {
                 $error = $e->getMessage();
                 echo json_encode($error);
+                exit();
             }
 
             //Ha új eseményt adnak hozzá, akkor insertálunk

@@ -19,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // $userId = $vote['userId'];
 
     // $questionId = $vote['questionId'];
-    $answerIds = $votes['answerIds'];
+    //$answerIds = $votes['answerIds'];
 
-    class Todo
+    class Vote
     {
         private $conn; // Adatbázis kapcsolat
 
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->conn = $conn;
         }
 
-        public function addTodo($token, $votes, $answerIds)
+        public function addVotes($token, $votes)
         {
             //GET condominium data
             try {
@@ -84,8 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $addtodo = new Todo($conn);
-    $addtodo->addTodo($token, $votes, $answerIds);
+    $addvotes = new Vote($conn);
+    $addvotes->addVotes($token, $votes);
 }
 
 
