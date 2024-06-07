@@ -92,7 +92,7 @@ if ($responsibles) {
             $email = $event['responsiblesEmail'];
         }
 
-        $result = emailSender('noreply@tarsashaz-fustike.hu', $event['condominiumName'], 'noreply@tarsashaz-fustike.hu', 'Fustike3537', $email, 'Közelgő esemény', $emailTemplate);
+        $result = emailSender('noreply@buildmate.hu', $event['condominiumName'], 'noreply@buildmate.hu', 'eyJ0eXAiOiJKV1QiLC', $email, 'Közelgő esemény', $emailTemplate);
 
     }
 
