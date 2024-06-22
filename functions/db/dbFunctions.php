@@ -1,21 +1,21 @@
 <?php
-require ('../../inc/conn.php');
+require('../../inc/conn.php');
 
 // $dataToHandleInDb = array();
 
 // $dataToHandleInDb = [
-//     'dbName' => "teszt",
-//     'method' => "",
-//     'columns' => ['token'],
-//     'values' => ['token'],
-//     'conditions' => ['user_id' => 2]
+//     'table' => "polls_questions",
+//     'method' => "get",
+//     'columns' => ['question_id'],
+//     'values' => [],
+//     'conditions' => []
 // ];
 
 function dataToHandleInDb($conn, $dataToHandleInDb)
 {
     $columnsFormatted = '';
     $valuesFormatted = '';
-    $dbName = $dataToHandleInDb['dbName'];
+    $table = $dataToHandleInDb['table'];
     $method = $dataToHandleInDb['method'];
 
     foreach ($dataToHandleInDb['columns'] as $key => $column) {
@@ -38,7 +38,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             try {
                 foreach ($dataToHandleInDb['columns'] as $key => $column) {
                     $stmt = $conn->prepare(
-                        "INSERT INTO " . $dbName . "
+                        "INSERT INTO " . $table . "
                             (" . $columnsFormatted . ")
                             VALUES (" . $valuesFormatted . ");
                         "
@@ -62,18 +62,19 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             }, array_keys($conditions)));
 
             try {
-                $stmt = $conn->prepare(
-                    "SELECT $columnsFormatted FROM $dbName WHERE $conditionString"
-                );
+                $query = "SELECT $columnsFormatted FROM $table";
+                if (!empty($conditionString)) {
+                    $query .= " WHERE $conditionString";
+                }
+                $stmt = $conn->prepare($query);
 
                 foreach ($conditions as $col => $value) {
                     $stmt->bindValue(":$col", $value);
                 }
-
                 $stmt->execute();
                 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                echo json_encode($results);
+                return $results;
             } catch (Exception $e) {
                 $error = "Hiba történt a művelet során: " . $e->getMessage();
                 echo json_encode($error);
@@ -94,7 +95,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
 
             try {
                 $stmt = $conn->prepare(
-                    "UPDATE $dbName SET $setString WHERE $conditionString"
+                    "UPDATE $table SET $setString WHERE $conditionString"
                 );
 
                 foreach ($columns as $key => $column) {
@@ -120,7 +121,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
 
             try {
                 $stmt = $conn->prepare(
-                    "DELETE FROM $dbName WHERE $conditionString"
+                    "DELETE FROM $table WHERE $conditionString"
                 );
 
                 foreach ($conditions as $col => $value) {
@@ -138,4 +139,4 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
 
 }
 
-dataToHandleInDb($conn, $dataToHandleInDb);
+//dataToHandleInDb($conn, $dataToHandleInDb);
