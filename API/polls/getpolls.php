@@ -125,12 +125,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'questionText' => $row['question'],
                                 'multiple' => $row['multiple'],
                                 'deadline' => $row['deadline'],
+                                'countdown' => null,
                                 'options' => array() // Itt inicializálj egy üres felelősök tömböt
                             );
                         }
                         if (!isset($polls[$questionId]['options'][$optionId])) {
                             $polls[$questionId]['options'][] = array(
-                                'id' => $row['optionId'],
+                                'id' => strval($row['optionId']),
                                 'value' => $row['option'],
                                 'checked' => false,
                                 'disabled' => false,
