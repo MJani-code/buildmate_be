@@ -8,6 +8,7 @@ require('../../inc/conn.php');
 //     'method' => "get",
 //     'columns' => ['question_id'],
 //     'values' => [],
+//     'others' => [],
 //     'conditions' => []
 // ];
 
@@ -57,14 +58,22 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             break;
         case 'get':
             $conditions = $dataToHandleInDb['conditions'];
+            $others = $dataToHandleInDb['others'];
+            $order = $dataToHandleInDb['order'];
             $conditionString = implode(" AND ", array_map(function ($col) {
                 return "$col = :$col";
             }, array_keys($conditions)));
 
             try {
                 $query = "SELECT $columnsFormatted FROM $table";
+                if (!empty($others)) {
+                    $query .= " $others";
+                }
                 if (!empty($conditionString)) {
                     $query .= " WHERE $conditionString";
+                }
+                if (!empty($order)) {
+                    $query .= " $order";
                 }
                 $stmt = $conn->prepare($query);
 
