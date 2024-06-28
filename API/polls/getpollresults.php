@@ -17,8 +17,7 @@ if (true) {
     $data = json_decode($jsonData, true);
 
     //$token = $_POST["token"];
-    $token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1hcnRvbmphbm9zMTk5MEBnbWFpbC5jb20iLCJleHBpcmF0aW9uVGltZSI6MTY5OTI0OTUwNH0.MT9-oeVoRGSQeGM1iwLWyAwUz97eEThbEbXnZbQu_ys";
-
+    $token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1hcnRvbmphbm9zMTk5MEBnbWFpbC5jb20iLCJleHBpcmF0aW9uVGltZSI6MTcxOTI3ODk3N30.JOj1oie4XK-_Ex-0X_jS6GIBmUdeGAvPGPyDqSW_wZ8";
 
     class GetPollResults
     {
@@ -54,61 +53,62 @@ if (true) {
                 $error = $e->getMessage();
                 echo json_encode($error);
             }
+            if($userId){
+                try {
+                    $dataToHandleInDb = [
+                        'table' => "polls_votes pv",
+                        'method' => "get",
+                        'columns' => ['pv.option_id', 'po.option_text', 'pv.question_id', 'pq.question', 'COUNT(pv.option_id) AS count'],
+                        'values' => [],
+                        'others' => "
+                            LEFT JOIN polls_options po on po.option_id = pv.option_id
+                            LEFT JOIN polls_questions pq on pq.question_id = pv.question_id
+                        ",
+                        'order' =>"
+                            GROUP BY pv.option_id
+                            ORDER BY count DESC
+                        ",
+                        'conditions' => ['pq.active' => 0, 'pq.deleted' => 0]
+                    ];
+                    $result = dataToHandleInDb($this->conn, $dataToHandleInDb);
 
-            try {
-                $dataToHandleInDb = [
-                    'table' => "polls_votes pv",
-                    'method' => "get",
-                    'columns' => ['pv.option_id', 'po.option_text', 'pv.question_id', 'pq.question', 'COUNT(pv.option_id) AS count'],
-                    'values' => [],
-                    'others' => "
-                        LEFT JOIN polls_options po on po.option_id = pv.option_id
-                        LEFT JOIN polls_questions pq on pq.question_id = pv.question_id
-                    ",
-                    'order' =>"
-                        GROUP BY pv.option_id
-                        ORDER BY count DESC
-                    ",
-                    'conditions' => ['active' => 0]
-                ];
-                $result = dataToHandleInDb($this->conn, $dataToHandleInDb);
+                    if($result){
+                        $pollResults = array();
+                        foreach ($result as $value) {
+                            $questionId = $value['question_id'];
+                            $optionText = $value['option_text'];
+                            if (!isset($pollResults[$questionId])) {
+                                $pollResults[$questionId] = array(
+                                    'question' => $value['question'],
+                                    'labels' => [],
+                                    'data' => []
+                                );
+                            }
+                            if (!in_array($optionText, $pollResults[$questionId]['labels'])) {
+                                $pollResults[$questionId]['labels'][] = $optionText;
+                                $pollResults[$questionId]['data'][] = intval($value['count']);
+                            }
+                            // $index = array_search($optionText, $pollResults[$questionId]['labels']);
+                            // if ($index !== false) {
+                            //     $pollResults[$questionId]['data'][$index]++;
+                            // }
+                        }
+                        //print_r($pollResults);
+                        echo json_encode($pollResults, JSON_PRETTY_PRINT);
 
-                if($result){
-                    $pollResults = array();
-                    foreach ($result as $value) {
-                        $questionId = $value['question_id'];
-                        $optionText = $value['option_text'];
-                        if (!isset($pollResults[$questionId])) {
-                            $pollResults[$questionId] = array(
-                                'question' => $value['question'],
-                                'labels' => [],
-                                'data' => []
-                            );
-                        }
-                        if (!in_array($optionText, $pollResults[$questionId]['labels'])) {
-                            $pollResults[$questionId]['labels'][] = $optionText;
-                            $pollResults[$questionId]['data'][] = intval($value['count']);
-                        }
-                        // $index = array_search($optionText, $pollResults[$questionId]['labels']);
-                        // if ($index !== false) {
-                        //     $pollResults[$questionId]['data'][$index]++;
-                        // }
+                    }else{
+                        $error = array(
+                            "error" => "Nincsen lezárt szavazás"
+                        );
+                        //echo json_encode($error);
                     }
-                    //print_r($pollResults);
-                    echo json_encode($pollResults, JSON_PRETTY_PRINT);
-
-                }else{
+                    //echo json_encode($result);
+                } catch (Exception $e) {
                     $error = array(
-                        "error" => "Nincsen lezárt szavazás"
+                        "error" => $e->getMessage()
                     );
                     echo json_encode($error);
                 }
-                //echo json_encode($result);
-            } catch (Exception $e) {
-                $error = array(
-                    "error" => $e->getMessage()
-                );
-                echo json_encode($error);
             }
         }
     }

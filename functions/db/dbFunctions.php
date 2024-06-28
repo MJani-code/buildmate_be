@@ -1,5 +1,5 @@
 <?php
-require('../../inc/conn.php');
+require ('../../inc/conn.php');
 
 // $dataToHandleInDb = array();
 
@@ -61,7 +61,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             $others = $dataToHandleInDb['others'];
             $order = $dataToHandleInDb['order'];
             $conditionString = implode(" AND ", array_map(function ($col) {
-                return "$col = :$col";
+                return "$col = :cond_" . str_replace(".", "_", $col);
             }, array_keys($conditions)));
 
             try {
@@ -78,7 +78,8 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                 $stmt = $conn->prepare($query);
 
                 foreach ($conditions as $col => $value) {
-                    $stmt->bindValue(":$col", $value);
+                    $paramName = ":cond_" . str_replace(".", "_", $col);
+                    $stmt->bindValue($paramName, $value);
                 }
                 $stmt->execute();
                 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -114,7 +115,6 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                 foreach ($conditions as $col => $value) {
                     $stmt->bindValue(":cond_$col", $value);
                 }
-
                 $stmt->execute();
                 echo "Data updated successfully.";
             } catch (Exception $e) {

@@ -4,7 +4,7 @@ header("Access-Control-Allow-Methods: *"); // Engedélyezett HTTP metódusok (pl
 header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
-require('../../inc/conn.php');
+require ('../../inc/conn.php');
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode($jsonData, true);
 
     $token = $_POST["token"];
-    //$token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1hcnRvbmphbm9zMTk5MEBnbWFpbC5jb20iLCJleHBpcmF0aW9uVGltZSI6MTcwMzgxOTIzOH0.ETphY4intQpdeVWcHTylIGNA4jDLmy5_6XZaSwF7Ca4';
 
     class GetPollsData
     {
@@ -53,69 +52,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode($error);
             }
             try {
-                //Get those questionIds which userId has already voted for.
                 $stmt = $this->conn->prepare(
                     "SELECT
-                        pv.question_id as 'questionId'
-                        FROM polls_votes pv
-                        where pv.user_id = '$userId'
-                    ");
+                            pq.question_id as 'questionId',
+                            pq.question as 'question',
+                            pq.multiple_choice as 'multiple',
+                            po.option_id as 'optionId',
+                            po.option_text as 'option',
+                            pq.active as 'active',
+                            if((SELECT vote_id from polls_votes where option_id = po.option_id limit 1) is NULL,0,1 ) as 'isVoted',
+                            pq.deadline as 'deadline',
+                            pq.created_by as 'createdBy'
+                            FROM polls_questions pq
+                            LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
+                            LEFT JOIN polls_options po on po.poll_id = pq.question_id
+                            where pq.active = 1 AND pq.deleted = 0 AND pv.user_id = '$userId'
+                            AND pq.id_condominiums = '$condominiumId'
+                            AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
+                            GROUP BY po.option_id
+                            order by pq.question_id desc;
+                        "
+                );
                 $stmt->execute();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $alreadyVotedIds = array();
-
-                foreach ($result as $row) {
-                    $alreadyVotedIds[] = $row['questionId'];
-                }
-
-                if (!empty($alreadyVotedIds)) {
-                    $stmt2 = $this->conn->prepare(
-                        "SELECT
-                            pq.question_id as 'questionId',
-                            pq.question as 'question',
-                            pq.multiple_choice as 'multiple',
-                            po.option_id as 'optionId',
-                            po.option_text as 'option',
-                            pq.active as 'active',
-                            pq.deadline as 'deadline'
-                            FROM polls_questions pq
-                            LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
-                            LEFT JOIN polls_options po on po.poll_id = pq.question_id
-                            where pq.active = 1
-                            AND pq.id_condominiums = '$condominiumId'
-                            AND pq.question_id NOT IN (" . implode(',', $alreadyVotedIds) . ")
-                            AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
-                            GROUP BY po.option_id
-                            order by pq.question_id desc
-                        ");
-                } else {
-                    $stmt2 = $this->conn->prepare(
-                        "SELECT
-                            pq.question_id as 'questionId',
-                            pq.question as 'question',
-                            pq.multiple_choice as 'multiple',
-                            po.option_id as 'optionId',
-                            po.option_text as 'option',
-                            pq.active as 'active',
-                            pq.deadline as 'deadline'
-                            FROM polls_questions pq
-                            LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
-                            LEFT JOIN polls_options po on po.poll_id = pq.question_id
-                            where pq.active = 1
-                            AND pq.id_condominiums = '$condominiumId'
-                            AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
-                            GROUP BY po.option_id
-                            order by pq.question_id desc
-                        ");
-                }
-
-                $stmt2->execute();
-                $result2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
                 $response['result'] = array();
 
-                if ($result2) {
+                if ($result) {
                     $polls = array();
-                    foreach ($result2 as $row) {
+                    foreach ($result as $row) {
                         $questionId = $row['questionId'];
                         $optionId = $row['optionId'];
                         if (!isset($polls[$questionId])) {
@@ -125,34 +89,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'questionText' => $row['question'],
                                 'multiple' => $row['multiple'],
                                 'deadline' => $row['deadline'],
+                                'createdBy' => $row['createdBy'],
                                 'countdown' => null,
-                                'options' => array() // Itt inicializálj egy üres felelősök tömböt
+                                'options' => array()
                             );
                         }
                         if (!isset($polls[$questionId]['options'][$optionId])) {
+                            $isDisabled = false;
+                            if(!$row['multiple'] && !$row['isVoted']){
+                                $isDisabled = true;
+                            }
                             $polls[$questionId]['options'][] = array(
                                 'id' => strval($row['optionId']),
                                 'value' => $row['option'],
-                                'checked' => false,
-                                'disabled' => false,
+                                'checked' => $row['isVoted'],
+                                'disabled' => $isDisabled,
                             );
                         }
                     }
-                    // Az események hozzáadása a válaszhoz
-
                     $response['result'] = array_values($polls);
-
                     echo json_encode($response);
-                    //print_r($response);
                 } else {
-                    $error["error"] = "Hiba történt az adatok lekérdezése közben";
-                    echo json_encode($error);
+                    $response["error"] = "Neked nincsen nyitott szavazásod";
+                    echo json_encode($response);
                 }
             } catch (Exception $e) {
-                $error = array(
-                    "error" => $e->getMessage()
-                );
-                echo json_encode($error);
+                $response["error"] = $e->getMessage();
+                echo json_encode($response);
             }
         }
     }
