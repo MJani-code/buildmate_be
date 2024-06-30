@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             FROM polls_questions pq
                             LEFT JOIN polls_votes pv on pv.question_id = pq.question_id
                             LEFT JOIN polls_options po on po.poll_id = pq.question_id
-                            where pq.active = 1 AND pq.deleted = 0 AND pv.user_id = '$userId'
+                            where pq.active = 1 AND pq.deleted = 0
                             AND pq.id_condominiums = '$condominiumId'
                             AND IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 1
                             GROUP BY po.option_id

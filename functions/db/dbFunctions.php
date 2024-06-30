@@ -37,25 +37,35 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
     switch ($method) {
         case 'insert':
             try {
-                foreach ($dataToHandleInDb['columns'] as $key => $column) {
-                    $stmt = $conn->prepare(
-                        "INSERT INTO " . $table . "
-                            (" . $columnsFormatted . ")
-                            VALUES (" . $valuesFormatted . ");
-                        "
-                    );
-                }
+                $stmt = $conn->prepare(
+                    "INSERT INTO " . $table . "
+                        (" . $columnsFormatted . ")
+                        VALUES (" . $valuesFormatted . ");
+                    "
+                );
                 foreach ($dataToHandleInDb['values'] as $key => $value) {
                     $column = ":" . $dataToHandleInDb['columns'][$key];
                     $stmt->bindValue($column, $value);
                 }
-                $stmt->execute();
-
+                if ($stmt->execute()) {
+                    $response = array(
+                        "isInserted" => 1,
+                        "message" => "Data inserted successfully."
+                    );
+                } else {
+                    $response = array(
+                        "isInserted" => 0,
+                        "message" => "Data insertion failed."
+                    );
+                }
+                return $response;
             } catch (Exception $e) {
-                $error = "Hiba történt a művelet során: " . $e->getMessage();
-                echo json_encode($error);
+                $response = array(
+                    "isInserted" => 0,
+                    "message" => "Hiba történt a művelet során: " . $e->getMessage()
+                );
+                return $response;
             }
-            break;
         case 'get':
             $conditions = $dataToHandleInDb['conditions'];
             $others = $dataToHandleInDb['others'];
@@ -96,11 +106,11 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             $conditions = $dataToHandleInDb['conditions'];
 
             $setString = implode(", ", array_map(function ($col) {
-                return "$col = :$col";
+                return "$col = :set_" . str_replace(".", "_", $col);
             }, $columns));
 
             $conditionString = implode(" AND ", array_map(function ($col) {
-                return "$col = :cond_$col";
+                return "$col = :cond_" . str_replace(".", "_", $col);
             }, array_keys($conditions)));
 
             try {
@@ -109,11 +119,13 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                 );
 
                 foreach ($columns as $key => $column) {
-                    $stmt->bindValue(":$column", $values[$key]);
+                    $paramName = ":set_" . str_replace(".", "_", $column);
+                    $stmt->bindValue($paramName, $values[$key]);
                 }
 
                 foreach ($conditions as $col => $value) {
-                    $stmt->bindValue(":cond_$col", $value);
+                    $paramName = ":cond_" . str_replace(".", "_", $col);
+                    $stmt->bindValue($paramName, $value);
                 }
                 $stmt->execute();
                 echo "Data updated successfully.";
@@ -125,7 +137,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
         case 'delete':
             $conditions = $dataToHandleInDb['conditions'];
             $conditionString = implode(" AND ", array_map(function ($col) {
-                return "$col = :$col";
+                return "$col = :cond_" . str_replace(".", "_", $col);
             }, array_keys($conditions)));
 
             try {
@@ -134,11 +146,15 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                 );
 
                 foreach ($conditions as $col => $value) {
-                    $stmt->bindValue(":$col", $value);
+                    $paramName = ":cond_" . str_replace(".", "_", $col);
+                    $stmt->bindValue($paramName, $value);
                 }
-
                 $stmt->execute();
-                echo "Data deleted successfully.";
+                $response = array(
+                    "isDeleted" => 1,
+                    "message" => "Data deleted successfully."
+                );
+                return $response;
             } catch (Exception $e) {
                 $error = "Hiba történt a művelet során: " . $e->getMessage();
                 echo json_encode($error);

@@ -4,7 +4,8 @@ header("Access-Control-Allow-Methods: *"); // Engedélyezett HTTP metódusok (pl
 header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
-require('../../inc/conn.php');
+require ('../../inc/conn.php');
+require ('../../functions/db/dbFunctions.php');
 
 
 ini_set('display_errors', 1);
@@ -16,14 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $votes = json_decode($jsonData, true);
 
     $token = $votes['token'];
-    // $userId = $vote['userId'];
-
-    // $questionId = $vote['questionId'];
-    //$answerIds = $votes['answerIds'];
 
     class Vote
     {
-        private $conn; // Adatbázis kapcsolat
+        private $conn;
 
         public function __construct($conn)
         {
@@ -32,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         public function addVotes($token, $votes)
         {
-            //GET condominium data
+            //User authentication
             try {
                 $stmt = $this->conn->prepare(
                     "SELECT
@@ -46,34 +43,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 if ($result) {
-                    foreach ($votes as $key => $value) {
-                        $questionId = $votes['questionId'];
-                        $userId = $votes['userId'];
+                    //To check if user has already voted
+                    $dataToHandleInDb = [
+                        'table' => "polls_votes pv",
+                        'method' => "get",
+                        'columns' => ['pv.vote_id'],
+                        'values' => [],
+                        'others' => null,
+                        'order' => null,
+                        'conditions' => ['pv.user_id' => $votes['userId'], 'pv.question_id' => $votes['questionId']]
+                    ];
+                    $userAlreadVoted = dataToHandleInDb($this->conn, $dataToHandleInDb);
 
-                        if ($key === 'answerIds' && is_array($value)) {
-                            foreach ($value as $element) {
-                                $optionId = $element;
-                                $stmt2 = $this->conn->prepare(
-                                    "INSERT INTO polls_votes
-                                    (user_id, question_id, option_id)
-                                    VALUES (:user_id, :question_id, :option_id);
-                                "
-                                );
-                                $stmt2->bindParam(":user_id", $userId);
-                                $stmt2->bindParam(":question_id", $questionId);
-                                $stmt2->bindParam(":option_id", $optionId);
-                                $stmt2->execute();
-                                $rowCount = $stmt2->rowCount();
+                    if ($userAlreadVoted) {
+                        //Delete all votes
+                        $dataToHandleInDb = [
+                            'table' => "polls_votes",
+                            'method' => "delete",
+                            'columns' => [],
+                            'values' => [],
+                            'others' => null,
+                            'order' => null,
+                            'conditions' => ['user_id' => $votes['userId'], 'question_id' => $votes['questionId']]
+                        ];
+                        $deleteVote = dataToHandleInDb($this->conn, $dataToHandleInDb);
+                        $isVoteDeleted = $deleteVote['isDeleted'];
 
-                            }
-                            if ($rowCount) {
-                                $response = array(
-                                    "confirmAddVotes" => true
-                                );
-                                echo json_encode($response);
+                        if ($isVoteDeleted) {
+                            //Insert new values
+                            foreach ($votes as $key => $value) {
+                                if ($key === 'answerIds' && is_array($value)) {
+                                    foreach ($value as $newVote) {
+                                        $dataToHandleInDb = [
+                                            'table' => "polls_votes",
+                                            'method' => "insert",
+                                            'columns' => ['user_id', 'question_id', 'option_id'],
+                                            'values' => [$votes['userId'], $votes['questionId'], $newVote],
+                                            'others' => null,
+                                            'order' => null,
+                                            'conditions' => []
+                                        ];
+                                        $insertNewVote = dataToHandleInDb($this->conn, $dataToHandleInDb);
+                                    }
+                                    $isNewVoteInserted = $insertNewVote['isInserted'];
+                                    if ($isNewVoteInserted) {
+                                        $response = array(
+                                            "confirmAddVotes" => true
+                                        );
+                                        echo json_encode($response);
+                                    } else {
+                                        $error = $isNewVoteInserted['message'];
+                                        echo json_encode($error);
+                                    }
+                                }
                             }
                         }
+                    } else {
+                        //Insert values
+                        foreach ($votes as $key => $value) {
+                            $questionId = $votes['questionId'];
+                            $userId = $votes['userId'];
 
+                            if ($key === 'answerIds' && is_array($value)) {
+                                foreach ($value as $element) {
+                                    $optionId = $element;
+                                    $stmt2 = $this->conn->prepare(
+                                        "INSERT INTO polls_votes
+                                        (user_id, question_id, option_id)
+                                        VALUES (:user_id, :question_id, :option_id);
+                                    "
+                                    );
+                                    $stmt2->bindParam(":user_id", $userId);
+                                    $stmt2->bindParam(":question_id", $questionId);
+                                    $stmt2->bindParam(":option_id", $optionId);
+                                    $stmt2->execute();
+                                    $rowCount = $stmt2->rowCount();
+
+                                }
+                                if ($rowCount) {
+                                    $response = array(
+                                        "confirmAddVotes" => true
+                                    );
+                                    echo json_encode($response);
+                                }
+                            }
+                        }
                     }
                 }
             } catch (Exception $e) {
