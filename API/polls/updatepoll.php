@@ -11,8 +11,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-//$_SERVER['REQUEST_METHOD'] === 'POST'
-if (true) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 
@@ -68,19 +67,15 @@ if (true) {
                                 'conditions' => ['question_id' => $id]
                             ];
                             $result = dataToHandleInDb($this->conn, $dataToHandleInDb);
-                            if ($result) {
-                                $response['result'] = "Success!";
+                            if ($result['isUpdated']) {
+                                $response['result'] = $result['message'];
                             } else {
-                                $error = array(
-                                    "error" => "Nem sikerült frissíteni az adatokat"
-                                );
+                                $response['error'] = $result['error'];
                             }
                         } catch (Exception $e) {
-                            $error = array(
-                                "error" => $e->getMessage()
-                            );
-                            echo json_encode($error);
+                            $response['error'] = $result['error'];
                         }
+                        echo json_encode($response);
                         break;
                     // case 'Delete':
                     //     echo "Ma kedd van.";

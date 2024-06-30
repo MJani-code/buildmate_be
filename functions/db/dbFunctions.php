@@ -127,13 +127,25 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                     $paramName = ":cond_" . str_replace(".", "_", $col);
                     $stmt->bindValue($paramName, $value);
                 }
-                $stmt->execute();
-                echo "Data updated successfully.";
+                if ($stmt->execute()) {
+                    $response = array(
+                        "isUpdated" => 1,
+                        "message" => "Data update successfully."
+                    );
+                } else {
+                    $response = array(
+                        "isUpdated" => 0,
+                        "error" => "Data update failed."
+                    );
+                }
+                return $response;
             } catch (Exception $e) {
-                $error = "Hiba történt a művelet során: " . $e->getMessage();
-                echo json_encode($error);
+                $response = array(
+                    "isUpdated" => 0,
+                    "error" => "Hiba történt a művelet során: " . $e->getMessage()
+                );
+                return $response;
             }
-            break;
         case 'delete':
             $conditions = $dataToHandleInDb['conditions'];
             $conditionString = implode(" AND ", array_map(function ($col) {
