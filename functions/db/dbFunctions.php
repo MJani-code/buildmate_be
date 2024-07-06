@@ -73,6 +73,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             $conditionString = implode(" AND ", array_map(function ($col) {
                 return "$col = :cond_" . str_replace(".", "_", $col);
             }, array_keys($conditions)));
+            $conditionExtra = $dataToHandleInDb['conditionExtra'];
 
             try {
                 $query = "SELECT $columnsFormatted FROM $table";
@@ -81,6 +82,9 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                 }
                 if (!empty($conditionString)) {
                     $query .= " WHERE $conditionString";
+                }
+                if(!empty($conditionExtra)){
+                    $query .= " AND $conditionExtra";
                 }
                 if (!empty($order)) {
                     $query .= " $order";

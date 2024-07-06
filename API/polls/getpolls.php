@@ -10,12 +10,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 
     $token = $_POST["token"];
+    //$token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImJqb2tlc3pAZ21haWwuY29tIiwiZXhwaXJhdGlvblRpbWUiOjE3MjAyODgzNjJ9.f-uU1Ajm13NqpC65uKUOWBCL1G8o_z-mGpfkcfrqQJk";
+
 
     class GetPollsData
     {
@@ -60,7 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             po.option_id as 'optionId',
                             po.option_text as 'option',
                             pq.active as 'active',
-                            if((SELECT vote_id from polls_votes where option_id = po.option_id limit 1) is NULL,0,1 ) as 'isVoted',
+                            if((SELECT vote_id from polls_votes where option_id = po.option_id AND user_id = '$userId' limit 1) is NULL,0,1 ) as 'isOptionVoted',
+                            if((SELECT vote_id from polls_votes where user_id = '$userId' AND question_id = pq.question_id limit 1) is NULL,0,1) as 'isQuestionVoted',
                             pq.deadline as 'deadline',
                             pq.created_by as 'createdBy'
                             FROM polls_questions pq
@@ -84,25 +86,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $optionId = $row['optionId'];
                         if (!isset($polls[$questionId])) {
                             $polls[$questionId] = array(
-                                'active' => $row['active'],
-                                'questionId' => $row['questionId'],
+                                'active' => intval($row['active']),
+                                'questionId' => intval($row['questionId']),
                                 'questionText' => $row['question'],
-                                'multiple' => $row['multiple'],
+                                'multiple' => intval($row['multiple']),
                                 'deadline' => $row['deadline'],
-                                'createdBy' => $row['createdBy'],
+                                'createdBy' => intval($row['createdBy']),
                                 'countdown' => null,
                                 'options' => array()
                             );
                         }
                         if (!isset($polls[$questionId]['options'][$optionId])) {
-                            $isDisabled = false;
-                            if(!$row['multiple'] && !$row['isVoted']){
-                                $isDisabled = true;
+                            $isDisabled = null;
+
+                            if($row['multiple']){
+                                $isDisabled = false;
+                            }else{
+                                if(!$row['isQuestionVoted']){
+                                    $isDisabled = false;
+                                }else{
+                                    if(!$row['isOptionVoted']){
+                                        $isDisabled = true;
+                                    }else{
+                                        $isDisabled = false;
+                                    }
+                                }
                             }
                             $polls[$questionId]['options'][] = array(
                                 'id' => strval($row['optionId']),
                                 'value' => $row['option'],
-                                'checked' => $row['isVoted'],
+                                'checked' => intval($row['isOptionVoted']),
                                 'disabled' => $isDisabled,
                             );
                         }

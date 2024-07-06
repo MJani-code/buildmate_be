@@ -11,13 +11,12 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-//$_SERVER['REQUEST_METHOD'] === 'POST'
-if (true) {
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents("php://input");
     $data = json_decode($jsonData, true);
 
-    //$token = $_POST["token"];
-    $token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1hcnRvbmphbm9zMTk5MEBnbWFpbC5jb20iLCJleHBpcmF0aW9uVGltZSI6MTcxOTI3ODk3N30.JOj1oie4XK-_Ex-0X_jS6GIBmUdeGAvPGPyDqSW_wZ8";
+    $token = $_POST["token"];
 
     class GetPollResults
     {
@@ -68,7 +67,8 @@ if (true) {
                             GROUP BY pv.option_id
                             ORDER BY count DESC
                         ",
-                        'conditions' => ['pq.active' => 0, 'pq.deleted' => 0]
+                        'conditions' => ['pq.deleted' => 0],
+                        'conditionExtra' => "IF(TIMESTAMPDIFF(SECOND, NOW(), pq.deadline) <= 0, 0, 1) = 0"
                     ];
                     $result = dataToHandleInDb($this->conn, $dataToHandleInDb);
 
@@ -88,21 +88,14 @@ if (true) {
                                 $pollResults[$questionId]['labels'][] = $optionText;
                                 $pollResults[$questionId]['data'][] = intval($value['count']);
                             }
-                            // $index = array_search($optionText, $pollResults[$questionId]['labels']);
-                            // if ($index !== false) {
-                            //     $pollResults[$questionId]['data'][$index]++;
-                            // }
                         }
-                        //print_r($pollResults);
                         echo json_encode($pollResults, JSON_PRETTY_PRINT);
 
                     }else{
                         $error = array(
                             "error" => "Nincsen lezárt szavazás"
                         );
-                        //echo json_encode($error);
                     }
-                    //echo json_encode($result);
                 } catch (Exception $e) {
                     $error = array(
                         "error" => $e->getMessage()
