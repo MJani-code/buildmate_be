@@ -1,18 +1,14 @@
 <?php
-header("Access-Control-Allow-Origin: http://192.168.76.68:3000"); // Változtasd meg a frontend URL-t, ha szükséges
-header("Access-Control-Allow-Methods: *"); // Engedélyezett HTTP metódusok (pl. POST)
-header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
-header("Content-Type: application/json"); // Példa: JSON válasz küldése
+header("Access-Control-Allow-Origin: http://192.168.76.68:3000");
+header("Access-Control-Allow-Methods: *");
+header("Access-Control-Allow-Headers: *");
+header("Content-Type: application/json");
 
 require('../inc/conn.php');
 require('../inc/secretkey.php');
 require('../vendor/autoload.php');
 
-
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
-
+require ('../functions/db/dbFunctions.php');
 
 use \Firebase\JWT\JWT;
 
@@ -37,8 +33,6 @@ class LoginHandler {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                // Itt helyezd el a valós bejelentkezési logikát, például adatbázis lekérdezéssel
-
                 // TODO: Létre kell hozni status oszlopot a user táblába!
                 $stmt = $this->conn->prepare(
                     "SELECT
@@ -51,7 +45,6 @@ class LoginHandler {
                 $stmt->bindParam(":email", $email);
                 $stmt->execute();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                //print_r($result);
                 $storedHashedPassword = $result['password'];
                 $user_id = $result['id'];
                 $firstName = $result['first_name'];
@@ -59,11 +52,10 @@ class LoginHandler {
                 $condominium_id = $result['id_condominiums'];
 
                 if (password_verify($password, $storedHashedPassword)) {
-                    //echo "sikeres belépés";
                     $header = array(
                         "typ" => "JWT",
                         "alg" => "HS256",
-                        "kid" => "unique-key-id" // Adj meg egy egyedi kulcs azonosítót
+                        "kid" => "unique-key-id"
                     );
                     //Lejárati idő meghatározása
                     $currentTimestamp = time();
@@ -76,6 +68,22 @@ class LoginHandler {
                     );
                     $jwt = JWT::encode($payload, $this->secretKey, 'HS256');
 
+                    //GET menu items
+                    $dataToHandleInDb = [
+                        'table' => "role_routes rr",
+                        'method' => "get",
+                        'columns' => ['*'],
+                        'values' => [],
+                        'others' => "
+                            LEFT JOIN routes r ON r.id = rr.route_id
+                        ",
+                        'order' => "",
+                        'conditions' => ['rr.role_id' => $result['userRoleId']],
+                        'conditionExtra' => ""
+                    ];
+
+                    $menuItems = dataToHandleInDb($this->conn, $dataToHandleInDb);
+
                     $response = array(
                         "firstName" => $firstName,
                         "lastName" => $lastName,
@@ -87,9 +95,9 @@ class LoginHandler {
                         "token" => $jwt,
                         "userId" => $result['id'],
                         "condominium_id" => $condominium_id,
-                        "loggedIn" => true
+                        "loggedIn" => true,
+                        "menuItems" => $menuItems
                     );
-
 
                     // Tárold el a tömböt a session-ben
                     session_start();

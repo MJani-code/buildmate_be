@@ -1,5 +1,5 @@
 <?php
-require ('../../inc/conn.php');
+//require ('../../inc/conn.php');
 
 // $dataToHandleInDb = array();
 
@@ -73,7 +73,7 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             $conditionString = implode(" AND ", array_map(function ($col) {
                 return "$col = :cond_" . str_replace(".", "_", $col);
             }, array_keys($conditions)));
-            $conditionExtra = $dataToHandleInDb['conditionExtra'];
+            $conditionExtra = $dataToHandleInDb['conditionExtra'] ?? "";
 
             try {
                 $query = "SELECT $columnsFormatted FROM $table";

@@ -7,6 +7,7 @@ header("Access-Control-Allow-Headers: *"); // Engedélyezett fejlécek
 header("Content-Type: application/json"); // Példa: JSON válasz küldése
 
 require('../inc/conn.php');
+require ('../functions/db/dbFunctions.php');
 
 
 ini_set('display_errors', 1);
@@ -24,7 +25,18 @@ class AuthHandler {
         $jsonData = file_get_contents("php://input");
         $data = json_decode($jsonData, true);
 
-        $token = $data['token'];
+        $token = $data['token'] ?? '';
+        $path = $data['path'] ?? '';
+
+        //Token meglétének ellenőrzése
+        if(!$token || !$path){
+            $response = array(
+                "tokenValid" => false
+            );
+            echo json_encode($response);
+            return false;
+        }
+
         $currentTimestamp = date("Y-m-d H:i:s",time());
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -38,17 +50,45 @@ class AuthHandler {
                 $stmt->bindParam(":token", $token);
                 $stmt->execute();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
                 $expirationTimestamp = $result['token_expire_date'];
                 $pageCategory = $result['page_category'];
+                $userRoleId = $result['id_user_roles'];
 
+                //Token érvényességének ellenőrzése
                 if($token && $currentTimestamp < $expirationTimestamp){
-                    $response = array(
-                        "tokenValid" => true,
-                        "pageCategory" => $pageCategory,
-                        "currentTimestamp" => $currentTimestamp,
-                        "expirationTimestamp" => $expirationTimestamp
-                    );
-                    echo json_encode($response);
+                    $dataToHandleInDb = [
+                        'table' => "role_routes rr",
+                        'method' => "get",
+                        'columns' => ['*'],
+                        'values' => [],
+                        'others' => "
+                            LEFT JOIN routes r ON r.id = rr.route_id
+                        ",
+                        'order' => "",
+                        'conditions' => ['rr.role_id' => $userRoleId, 'r.path' => $path],
+                        'conditionExtra' => ""
+                    ];
+                    $isPathAllowed = dataToHandleInDb($this->conn, $dataToHandleInDb);
+
+                    if($isPathAllowed){
+                        $response = array(
+                            "status" => 200,
+                            "tokenValid" => true,
+                            "pageCategory" => $pageCategory,
+                            "currentTimestamp" => $currentTimestamp,
+                            "expirationTimestamp" => $expirationTimestamp
+                        );
+                        echo json_encode($response);
+                    }else{
+                        $response = array(
+                            "status" => 401,
+                            "tokenValid" => false,
+                            "pageCategory" => $pageCategory,
+                            "message" => "nincs jogosultságod a tartalom megtekintéséhez"
+                        );
+                        echo json_encode($response);
+                    }
                 }else{
                     $error["error"] = "A munkamenet lejárt, jelentkezz be újra!";
                     echo json_encode($error);
