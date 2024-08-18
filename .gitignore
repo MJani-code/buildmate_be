@@ -1,3 +1,4 @@
 inc/
 uploads/
 PHPMailer/
+.htaccess/
