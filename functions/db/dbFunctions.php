@@ -70,20 +70,26 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
             $conditions = $dataToHandleInDb['conditions'];
             $others = $dataToHandleInDb['others'];
             $order = $dataToHandleInDb['order'];
+            $cte = $dataToHandleInDb['cte'];
+
             $conditionString = implode(" AND ", array_map(function ($col) {
                 return "$col = :cond_" . str_replace(".", "_", $col);
             }, array_keys($conditions)));
             $conditionExtra = $dataToHandleInDb['conditionExtra'] ?? "";
 
             try {
-                $query = "SELECT $columnsFormatted FROM $table";
+                $query = "";
+                if (!empty($cte)) {
+                    $query = "WITH $cte";
+                }
+                $query .= "SELECT $columnsFormatted FROM $table";
                 if (!empty($others)) {
                     $query .= " $others";
                 }
                 if (!empty($conditionString)) {
                     $query .= " WHERE $conditionString";
                 }
-                if(!empty($conditionExtra)){
+                if (!empty($conditionExtra)) {
                     $query .= " AND $conditionExtra";
                 }
                 if (!empty($order)) {
@@ -96,14 +102,26 @@ function dataToHandleInDb($conn, $dataToHandleInDb)
                     $stmt->bindValue($paramName, $value);
                 }
                 $stmt->execute();
-                $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+                $payload = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($stmt->execute()) {
+                    $results['status'] = 200;
+                    $results['message'] = 'success';
+                    $results['payload'] = $payload;
+                } else {
+                    $errorInfo = $stmt->errorInfo();
+                    $results['status'] = 500;
+                    $results['message'] = 'Hiba történt a lekérdezés végrehajtása során.';
+                    $results['error_info'] = $errorInfo;
+                }
                 return $results;
             } catch (Exception $e) {
-                $error = "Hiba történt a művelet során: " . $e->getMessage();
-                echo json_encode($error);
+                $errorInfo = $e->getMessage();
+                $results['status'] = 500;
+                $results['message'] = 'Hiba történt a lekérdezés végrehajtása során';
+                $results['error_info'] = $errorInfo;
+                return $results;
             }
-            break;
+
         case 'update':
             $columns = $dataToHandleInDb['columns'];
             $values = $dataToHandleInDb['values'];

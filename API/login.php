@@ -79,7 +79,7 @@ class LoginHandler {
                         ",
                         'order' => "",
                         'conditions' => ['rr.role_id' => $result['userRoleId']],
-                        'conditionExtra' => ""
+                        'conditionExtra' => "r.description IS NOT NULL"
                     ];
 
                     $menuItems = dataToHandleInDb($this->conn, $dataToHandleInDb);
@@ -96,7 +96,7 @@ class LoginHandler {
                         "userId" => $result['id'],
                         "condominium_id" => $condominium_id,
                         "loggedIn" => true,
-                        "menuItems" => $menuItems
+                        "menuItems" => $menuItems['payload']
                     );
 
                     // Tárold el a tömböt a session-ben
