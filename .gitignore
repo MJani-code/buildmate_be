@@ -2,3 +2,4 @@ inc/
 uploads/
 PHPMailer/
 .htaccess
+functions/email

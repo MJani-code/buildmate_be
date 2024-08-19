@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->response = &$response;
         }
 
-        public function getData($token, $response)
+        public function getData($token, &$response)
         {
             try {
                 //GET condominium data
